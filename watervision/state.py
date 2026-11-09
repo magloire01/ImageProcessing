@@ -38,20 +38,22 @@ DEFAULT_PARAMS: dict[str, object] = {
     "patch_cutoff": 0.35,
     "max_frequency_windows": 56,
     # --- method 1: hard HSV thresholds --------------------------------
-    "h_min": 90.0,
+    # Blue only: cyan-blue (185°) through pure blue (240°) to 255°.
+    # Green land sits near 120° and yellow near 60°, so both fall outside.
+    "h_min": 185.0,
     "h_max": 255.0,
     "s_min": 0.12,
     "s_max": 1.0,
     "v_min": 0.08,
     "v_max": 0.92,
-    "use_secondary_hue": True,
+    "use_secondary_hue": False,
     "h2_min": 8.0,
     "h2_max": 42.0,
     "s2_min": 0.10,
     "s2_max": 0.65,
     "v2_min": 0.08,
     "v2_max": 0.55,
-    "include_dark_water": True,
+    "include_dark_water": False,
     "dark_v_max": 0.20,
     "dark_s_max": 0.35,
     # --- method 2: smooth-region candidate from local HF energy -------
@@ -63,7 +65,7 @@ DEFAULT_PARAMS: dict[str, object] = {
     "weight_homogeneity": 0.15,
     "use_homogeneity": True,
     "decision_threshold": 0.56,
-    "hue_softness": 16.0,
+    "hue_softness": 8.0,
     "homogeneity_std_ref": 0.08,
     # --- morphology ----------------------------------------------------
     "morph_radius": 2,

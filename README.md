@@ -37,7 +37,7 @@ Local frequency analysis repeats that idea on Hann-windowed patches. After the p
 
 Segmentation has three masks.
 
-1. HSV. A pixel is inside a hue interval (the interval may cross 0°), a saturation range, and a value range. A second interval covers a narrow ochre band. A dark-water rule accepts low saturation only when the pixel is also dark, because hue is meaningless near grey. Water is not assumed to be blue.
+1. HSV. A pixel is inside a hue interval (the interval may cross 0°), a saturation range, and a value range. The default interval is blue only, from 185° to 255°. A second ochre band and a dark-water rule can be turned on, and both are off by default.
 2. Fourier. The pixel is a candidate where the local high-frequency ratio is below a threshold. The mask is labeled as a candidate.
 3. Hybrid. The score is a weighted sum of soft HSV membership, a logistic smoothness term centered on the same threshold, and local homogeneity from the box-filter variance `E[X²] − (E[X])²`. Weights are normalized so they sum to 1. With the defaults, smoothness and homogeneity together stay below the decision threshold, so frequency evidence cannot carry the label by itself.
 

@@ -95,7 +95,7 @@ class SegmentationPage(ctk.CTkFrame):
         frame = self._scroll(tab)
         Hint(
             frame,
-            "Hue is an angle in degrees, not a blue switch. The primary interval covers green through blue. The second interval is a narrow ochre band for turbid water. Very bright pixels are rejected so cloud and foam are not painted as water.",
+            "Default detection keeps blue pixels only: hue from 185° to 255°. Green and yellow land fall outside that arc. The second band and the dark-water rule are off until you turn them on.",
         ).pack(anchor="w", pady=(0, 6))
         self.h_min = self._slider(frame, "Hue minimum", 0, 360, params["h_min"], 360, "{:.0f}°", "h_min")
         self.h_max = self._slider(frame, "Hue maximum", 0, 360, params["h_max"], 360, "{:.0f}°", "h_max")

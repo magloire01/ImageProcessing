@@ -30,10 +30,10 @@ Method 3 — hybrid score (the method intended for the area estimate)
     a large share of S unless the user raises the texture weight, a smooth
     tan roof does not become water on frequency evidence alone.
 
-Natural water is not assumed to be blue. The default hue interval runs from
-yellow-green through cyan to blue, the secondary interval covers a narrow
-ochre band for sediment-laden water, and the dark rule covers grey water
-whose saturation is too low for hue to be meaningful. All three are adjustable.
+The default interval keeps blue pixels only, from 185° to 255° (cyan-blue
+through pure blue). Green and yellow fall outside that arc. The ochre band
+and the dark-water rule stay in the code, but they are off unless the user
+turns them on. All three gates remain adjustable.
 """
 
 from __future__ import annotations
@@ -339,6 +339,12 @@ def segment(rgb: np.ndarray, params: dict, energy: np.ndarray | None = None) -> 
 
     raw = {"hsv": raw_hsv, "fourier": raw_frequency, "hybrid": raw_hybrid}
     clean = {name: apply_morphology(mask, params) for name, mask in raw.items()}
+    # Closing and hole filling grow the mask. On a globe the ocean encloses
+    # each continent, so those land pixels would be filled even though they
+    # are not blue. The displayed water masks are therefore cut back to the
+    # pixels that pass the color test. The Fourier mask stays a texture map.
+    clean["hsv"] = clean["hsv"] & raw_hsv
+    clean["hybrid"] = clean["hybrid"] & raw_hsv
     return SegmentationResult(energy=energy, raw=raw, clean=clean, weights=weights, score=score)
 
 

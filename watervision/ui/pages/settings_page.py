@@ -20,9 +20,9 @@ The 2D discrete Fourier transform describes the whole image as a sum of spatial 
 
 Local high-frequency energy repeats a small version of that measurement inside a sliding patch. The ratio is the share of patch energy outside a low-frequency disk, after a Hann window and after the patch mean is removed. Calm water is often smooth. So are sand, pavement, and shadow. The frequency mask is therefore a candidate, not a detection.
 
-The hybrid score adds a soft HSV membership so color has to agree. Natural water is not assumed to be blue: the hue interval can cover green, cyan, blue, a separate ochre band, and a dark low-saturation rule for grey water.
+The hybrid score adds a soft HSV membership so color has to agree. By default only blue pixels are kept (hue 185° to 255°). A second ochre band and a dark-water rule exist, and both stay off until you enable them.
 
-Morphology then cleans the binary sets. Opening removes thin false positives before closing is allowed to bridge gaps. Holes are filled only when they do not touch the image border. Small components are removed by pixel count.
+Morphology then cleans the binary sets. Opening removes thin false positives before closing is allowed to bridge gaps. Holes are filled only when they do not touch the image border, then any filled pixel that is not blue is removed, so a continent surrounded by ocean stays out of the mask. Small components are removed by pixel count.
 
 Area is a pixel count and a percentage unless a pixel width and height in meters are entered. Without that scale the result is not a ground area.
 

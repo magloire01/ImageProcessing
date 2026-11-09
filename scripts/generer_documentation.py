@@ -195,7 +195,7 @@ def body(doc: Manual) -> None:
         "WaterVision détecte des étendues d'eau naturelles dans une photographie : lac, rivière, étang ou retenue. Il produit un masque binaire, compte les pixels d'eau, et n'annonce une surface en mètres carrés que si l'utilisateur fournit la taille réelle d'un pixel."
     )
     doc.paragraph(
-        "L'eau naturelle n'est pas un bleu unique. Elle peut être verte, brune, grise, sombre ou réfléchissante. Le logiciel sépare donc la teinte de la luminosité, et il refuse de conclure à la présence d'eau à partir de la seule texture. Une plage de sable lisse a un spectre aussi pauvre en hautes fréquences qu'une eau calme."
+        "Par défaut, seuls les pixels bleus sont retenus, entre 185° et 255°. Le vert des continents et le jaune du sable tombent en dehors de cet arc. Le logiciel sépare la teinte de la luminosité, et il refuse de conclure à la présence d'eau à partir de la seule texture : une plage lisse a un spectre aussi pauvre en hautes fréquences qu'une eau calme."
     )
 
     doc.h1("2. Organisation du code")
@@ -274,7 +274,7 @@ def body(doc: Manual) -> None:
         "Si delta vaut 0, le pixel est gris et la teinte est indéterminée. Le code range 0. Ce choix est sans effet, car la saturation est alors nulle et les tests de teinte ne doivent pas décider seuls. Le modulo ramène le secteur rouge, qui peut être négatif près du magenta, dans l'intervalle [0, 360)."
     )
     doc.paragraph(
-        "HSV est utilisé parce qu'une même eau, plus profonde ou plus éclairée, garde à peu près la même teinte alors que ses valeurs RGB changent toutes les trois. Un seuil sur le canal bleu aurait rejeté l'eau verte, l'eau turbide et l'eau sombre."
+        "HSV est utilisé parce qu'une même eau, plus profonde ou plus éclairée, garde à peu près la même teinte alors que ses valeurs RGB changent toutes les trois. L'intervalle par défaut isole le bleu : un pixel vert ou jaune n'y entre pas."
     )
 
     doc.h1("7. Prétraitement")
@@ -352,10 +352,10 @@ def body(doc: Manual) -> None:
     )
     doc.h2("Méthode 1 — seuils HSV")
     doc.paragraph(
-        "hsv_hard_mask est un test booléen. Un pixel est retenu s'il est dans la boîte primaire, ou dans la seconde boîte si elle est activée, ou dans la règle d'eau sombre si elle est activée. La boîte primaire par défaut couvre les teintes de 90° à 255°, donc du vert jusqu'au bleu, avec une saturation d'au moins 0,12 et une valeur entre 0,08 et 0,92. Le plafond de valeur écarte les nuages et la mousse très clairs."
+        "hsv_hard_mask est un test booléen. Un pixel est retenu s'il est dans la boîte primaire, ou dans la seconde boîte si elle est activée, ou dans la règle d'eau sombre si elle est activée. La boîte primaire par défaut couvre les teintes de 185° à 255°, donc le bleu, avec une saturation d'au moins 0,12 et une valeur entre 0,08 et 0,92. Le vert et le jaune tombent en dehors. La seconde bande et la règle d'eau sombre sont éteintes tant que l'utilisateur ne les active pas. Le plafond de valeur écarte les nuages et la mousse très clairs."
     )
     doc.paragraph(
-        "La teinte est un angle. hue_in_range sait traverser 0° : si le minimum est supérieur au maximum, l'arc passe par le rouge, et un pixel est dedans s'il est au-dessus du minimum ou en dessous du maximum. La seconde bande, activée par défaut, est un ocre étroit, de 8° à 42°, avec une valeur maximale de 0,55. Elle vise une eau chargée de sédiments, pas un sable clair dont la valeur dépasse ce plafond."
+        "La teinte est un angle. hue_in_range sait traverser 0° : si le minimum est supérieur au maximum, l'arc passe par le rouge, et un pixel est dedans s'il est au-dessus du minimum ou en dessous du maximum. La seconde bande, éteinte par défaut, est un ocre étroit, de 8° à 42°, avec une valeur maximale de 0,55. Elle vise une eau chargée de sédiments, pas un sable clair dont la valeur dépasse ce plafond."
     )
     doc.paragraph(
         "La règle d'eau sombre accepte un pixel seulement s'il est à la fois peu lumineux et peu saturé. La teinte d'un gris est instable. Un végétal sombre mais saturé échoue au test de saturation. Un trottoir gris clair échoue au test de valeur."
@@ -370,7 +370,7 @@ def body(doc: Manual) -> None:
     )
     doc.formula("S = w_c C + w_t T + w_h H     avec w_c + w_t + w_h = 1")
     doc.paragraph(
-        "C est une appartenance douce aux mêmes bandes HSV. Hors d'un intervalle, la teinte décroît comme une gaussienne dont l'écart est hue_softness, 16° par défaut. La saturation et la valeur décroissent de la même façon, avec un écart de 0,06. Les trois portes se multiplient : C = C_H × C_S × C_V. Un sable clair peut frôler une teinte brune ; si sa valeur est loin de l'intervalle, le produit tombe et le terme de texture ne suffit plus à franchir le seuil. La règle sombre est ajoutée par un maximum, pas par ce produit, parce qu'un gris n'a pas de teinte exploitable."
+        "C est une appartenance douce aux mêmes bandes HSV. Hors d'un intervalle, la teinte décroît comme une gaussienne dont l'écart est hue_softness, 8° par défaut. La saturation et la valeur décroissent de la même façon, avec un écart de 0,06. Les trois portes se multiplient : C = C_H × C_S × C_V. Un sable clair ou un continent vert est loin de l'arc bleu, donc le produit tombe et le terme de texture ne suffit plus à franchir le seuil. La règle sombre, si on l'active, est ajoutée par un maximum, pas par ce produit, parce qu'un gris n'a pas de teinte exploitable."
     )
     doc.paragraph(
         "T est la version souple du seuil de la méthode 2. C'est une logistique centrée sur ce seuil. En dessous, le pixel est lisse et T approche 1. Au-dessus, T approche 0. La pente texture_steepness vaut 14 par défaut. L'argument de l'exponentielle est borné pour éviter un dépassement numérique."
@@ -485,7 +485,7 @@ def body(doc: Manual) -> None:
 
     doc.h1("16. Scène de démonstration")
     doc.paragraph(
-        "demo.make_demo_scene fabrique une image 480×640 et son masque de vérité, sans fichier extérieur. La graine aléatoire est fixe. Le sol est un jaune-vert texturé, volontairement hors de la bande de teinte primaire. Un banc de sable est lisse et beige : la méthode fréquentielle l'accepte, la teinte et le score hybride le refusent. Le lac et la rivière sont bleu-vert, avec un très faible bruit. Un petit étang gris, peu saturé, ne passe pas le seuil de saturation primaire ; c'est la règle d'eau sombre qui peut l'admettre."
+        "demo.make_demo_scene fabrique une image 480×640 et son masque de vérité, sans fichier extérieur. La graine aléatoire est fixe. Le sol est un jaune-vert texturé, volontairement hors de la bande bleue. Un banc de sable est lisse et beige : la méthode fréquentielle l'accepte, la teinte et le score hybride le refusent. Le lac et la rivière sont bleus, avec un très faible bruit, et la teinte reste près de 200°. L'étang gris n'est pas bleu : avec la règle d'eau sombre éteinte, il n'est pas retenu."
     )
     doc.paragraph(
         "La vérité terrain est l'union géométrique du lac, de la rivière et de l'étang. Le sable en est exclu. Le test test_methods_separate_smooth_sand_from_water vérifie que l'hybride couvre le lac, que Fourier couvre le sable, et que l'hybride ne traite pas ce sable comme de l'eau. Il vérifie aussi que l'IoU hybride dépasse l'IoU fréquentiel sur cette scène."
@@ -513,7 +513,7 @@ def body(doc: Manual) -> None:
     doc.bullet("Il ne géoréférence pas une image. Sans largeur et hauteur de pixel, il n'y a pas de mètres carrés.")
     doc.bullet("Il ne corrige pas le relief. Un pixel en pente ne représente pas la même aire au sol qu'un pixel plat.")
     doc.bullet("Il ne distingue pas, par la fréquence seule, l'eau d'une autre surface lisse.")
-    doc.bullet("Une eau très ridée peut perdre le terme de texture. L'utilisateur peut alors baisser le seuil de décision ou augmenter le poids de la couleur. Une végétation vraiment verte et saturée peut, à l'inverse, entrer dans l'intervalle de teinte : le poids de texture sert à la défavoriser lorsqu'elle est rugueuse.")
+    doc.bullet("Une eau très ridée peut perdre le terme de texture. L'utilisateur peut alors baisser le seuil de décision ou augmenter le poids de la couleur. Le vert et le jaune restent hors de l'intervalle bleu. Pour les reprendre, il faut élargir la teinte, ou activer la seconde bande.")
     doc.bullet("Le prétraitement et la segmentation décrivent la photo telle qu'elle est cadrée. Un cadre noir compte dans le total des pixels.")
     doc.gap()
     doc.paragraph(

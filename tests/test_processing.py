@@ -179,6 +179,20 @@ class DemoTests(unittest.TestCase):
         fourier_scores = evaluate_mask(fourier, truth)
         self.assertGreater(scores["iou"], fourier_scores["iou"])
 
+    def test_enclosed_green_land_is_not_filled_as_water(self):
+        # A blue field with a green block in the middle is the globe case:
+        # hole filling would paint the block, but that block is not blue.
+        rgb = np.zeros((80, 80, 3), dtype=np.uint8)
+        rgb[..., 2] = 180
+        rgb[..., 0] = 20
+        rgb[..., 1] = 40
+        rgb[25:55, 25:55] = (40, 160, 40)
+        result = segment(rgb, default_params())
+        land = result.clean["hybrid"][25:55, 25:55]
+        ocean = result.clean["hybrid"][5:20, 5:20]
+        self.assertLess(float(land.mean()), 0.05)
+        self.assertGreater(float(ocean.mean()), 0.9)
+
 
 class ReportTests(unittest.TestCase):
     def test_csv_and_pdf_roundtrip_files(self):

@@ -8,9 +8,9 @@ The scene is constructed to make a specific point:
 
 - The lake and the river are smooth and blue-green. Color and frequency agree.
 - The sandbar is smooth and tan. Frequency accepts it; hue rejects it.
-- The land is textured and yellow-green. Frequency rejects it. A wide blue
-  hue interval would also reject most of it, because its hue sits below the
-  primary water range.
+- The land is textured and yellow-green. Its hue sits below the default
+  blue interval (185°–255°), so color rejects it. Frequency rejects it
+  because the land is textured.
 
 A ground-truth mask of the lake, river, and a small dark pond is returned
 with the image. The sandbar is intentionally absent from that mask.
@@ -63,8 +63,8 @@ def make_demo_scene(
     y = np.linspace(0.0, 1.0, height, dtype=np.float32)[:, None]
     x = np.linspace(0.0, 1.0, width, dtype=np.float32)[None, :]
 
-    # Textured land. Hue is kept near yellow-green, outside the default
-    # primary water interval (90°–255°) and outside the narrow ochre band.
+    # Textured land. Hue is kept near yellow-green, below the default
+    # blue interval (185°–255°).
     land = np.zeros((height, width, 3), dtype=np.float32)
     land[..., 0] = 150.0
     land[..., 1] = 132.0
